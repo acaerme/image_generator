@@ -39,6 +39,14 @@ class PromptResult extends PromptState {
   List<Object?> get props => [prompt, imagePath];
 }
 
+class PromptError extends PromptState {
+  final String message;
+  const PromptError(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
 // Bloc
 class PromptBloc extends Bloc<PromptEvent, PromptState> {
   PromptBloc() : super(PromptInitial()) {
@@ -53,8 +61,9 @@ class PromptBloc extends Bloc<PromptEvent, PromptState> {
       final imagePath = await MockApi.generate(event.prompt);
       emit(PromptResult(event.prompt, imagePath));
     } catch (e) {
-      // For this simple mock, fall back to initial state on error.
-      emit(PromptInitial());
+      // Surface the error so the UI can present a retry affordance.
+      final message = e?.toString() ?? 'Unknown error';
+      emit(PromptError(message));
     }
   }
 

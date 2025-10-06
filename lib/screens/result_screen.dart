@@ -54,7 +54,7 @@ class ResultScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
 
-                      // Image area (uses asset added to assets/images/)
+                      // Image / Error area (uses asset added to assets/images/)
                       Center(
                         child: BlocBuilder<PromptBloc, PromptState>(builder: (context, state) {
                           // When loading, show a visually distinct loader in place of the image
@@ -90,6 +90,57 @@ class ResultScreen extends StatelessWidget {
                                     Text('Generating image...', style: TextStyle(color: theme.textTheme.bodyMedium?.color)),
                                   ],
                                 ),
+                              ),
+                            );
+                          }
+
+                          // Error state: show a friendly error card with Retry
+                          if (state is PromptError) {
+                            return Container(
+                              width: maxContentWidth - 24,
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.errorContainer,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: theme.colorScheme.error.withOpacity(0.12)),
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
+                                  const SizedBox(height: 8),
+                                  Text('Something went wrong', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: theme.colorScheme.onErrorContainer)),
+                                  const SizedBox(height: 6),
+                                  Text(state.message, textAlign: TextAlign.center, style: TextStyle(color: theme.colorScheme.onErrorContainer)),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          // Retry with the last known prompt if any, otherwise fall back to a default
+                                          String retryPrompt = 'A cozy cabin in snowy mountains, warm lighting, 16:9';
+                                          final current = context.read<PromptBloc>().state;
+                                          if (current is PromptError) {
+                                            // No prompt stored in error state; fall back to default
+                                          } else if (current is PromptResult) {
+                                            retryPrompt = current.prompt;
+                                          }
+                                          context.read<PromptBloc>().add(GeneratePrompt(retryPrompt));
+                                        },
+                                        child: const Padding(
+                                          padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                                          child: Text('Retry'),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      TextButton(
+                                        onPressed: () => context.read<PromptBloc>().add(PopResult()),
+                                        child: const Text('Back'),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
                             );
                           }
@@ -135,6 +186,57 @@ class ResultScreen extends StatelessWidget {
                           String currentPrompt = 'A cozy cabin in snowy mountains, warm lighting, 16:9';
                           if (state is PromptResult) currentPrompt = state.prompt;
 
+                          // Error: show Retry + New prompt
+                          if (state is PromptError) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton.icon(
+                                    icon: const Icon(Icons.refresh),
+                                    label: const Padding(
+                                      padding: EdgeInsets.symmetric(vertical: 12.0),
+                                      child: Text('Retry', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      elevation: 2,
+                                    ),
+                                    onPressed: isLoading
+                                        ? null
+                                        : () {
+                                            // Retry with fallback prompt
+                                            context.read<PromptBloc>().add(GeneratePrompt(currentPrompt));
+                                          },
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton.icon(
+                                    icon: const Icon(Icons.edit),
+                                    label: const Padding(
+                                      padding: EdgeInsets.symmetric(vertical: 12.0),
+                                      child: Text('New prompt', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      elevation: 2,
+                                    ),
+                                    onPressed: isLoading
+                                        ? null
+                                        : () {
+                                            // Navigate back to prompt input by popping result state
+                                            context.read<PromptBloc>().add(PopResult());
+                                          },
+                                  ),
+                                ),
+                              ],
+                            );
+                          }
+
+                          // Default/result: Try another + New prompt
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [

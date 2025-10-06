@@ -47,7 +47,8 @@ class AppRouterDelegate extends RouterDelegate<AppRoutePath>
     super.dispose();
   }
 
-  bool get _showResult => promptBloc.state is PromptResult || promptBloc.state is PromptLoading;
+  bool get _showResult =>
+      promptBloc.state is PromptResult || promptBloc.state is PromptLoading || promptBloc.state is PromptError;
 
   @override
   AppRoutePath get currentConfiguration => _showResult ? AppRoutePath.result() : AppRoutePath.home();
