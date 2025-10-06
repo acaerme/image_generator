@@ -125,7 +125,11 @@ class _PromptScreenState extends State<PromptScreen> {
       // Keep resizeToAvoidBottomInset true so the body moves up for the keyboard.
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        title: const Text('Create Image'),
+        title: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(20)),
+          child: Text('Prompt', style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w700)),
+        ),
         centerTitle: true,
         elevation: 1,
       ),

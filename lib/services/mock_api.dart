@@ -22,20 +22,44 @@ class MockApi {
       throw Exception('Mock API failure: simulated transient error');
     }
 
-    // Simple keyword mapping: if prompt looks like one of the examples, return
-    // the corresponding example asset. Otherwise return the generated image.
-    final lower = prompt.toLowerCase();
-    if (lower.contains('desktop') || lower.contains('desk') || lower.contains('workspace') || lower.contains('cozy')) {
+    // Debug: log received prompt
+    print('[MockApi] generate() prompt: "$prompt"');
+
+    // Prefer exact-matching of known example prompts to avoid accidental keyword collisions.
+    final lower = prompt.trim().toLowerCase();
+    const ex1 = 'cozy desktop workspace by a window, warm lamp light, plants, shallow depth of field';
+    const ex2 = 'soft clouds over rolling hills at golden hour, high dynamic range, wide angle';
+    const ex3 = 'serene river flowing through a forest, misty morning, photorealistic';
+
+    if (lower == ex1) {
+      print('[MockApi] matched example_1');
       return 'assets/images/example_1.jpg';
     }
-    if (lower.contains('cloud') || lower.contains('clouds') || lower.contains('sky')) {
+    if (lower == ex2) {
+      print('[MockApi] matched example_2');
       return 'assets/images/example_2.jpg';
     }
-    if (lower.contains('river') || lower.contains('stream') || lower.contains('water')) {
+    if (lower == ex3) {
+      print('[MockApi] matched example_3');
       return 'assets/images/example_3.jpg';
     }
 
+    // Fallback keyword mapping (less preferred). Keep as a secondary heuristic.
+    if (lower.contains('cloud') || lower.contains('clouds') || lower.contains('sky')) {
+      print('[MockApi] keyword matched clouds -> example_2');
+      return 'assets/images/example_2.jpg';
+    }
+    if (lower.contains('river') || lower.contains('stream') || lower.contains('water')) {
+      print('[MockApi] keyword matched river -> example_3');
+      return 'assets/images/example_3.jpg';
+    }
+    if (lower.contains('desktop') || lower.contains('desk') || lower.contains('workspace') || lower.contains('cozy')) {
+      print('[MockApi] keyword matched desk/cozy -> example_1');
+      return 'assets/images/example_1.jpg';
+    }
+
     // Default fallback
+    print('[MockApi] returning generated_image');
     return 'assets/images/generated_image.jpg';
   }
 }

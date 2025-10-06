@@ -13,7 +13,11 @@ class ResultScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Result'),
+        title: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(20)),
+          child: Text('Result', style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w700)),
+        ),
         centerTitle: true,
         elevation: 1,
         leading: IconButton(
@@ -35,57 +39,62 @@ class ResultScreen extends StatelessWidget {
                 child: Container(
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: theme.colorScheme.primary.withOpacity(0.12)),
-                    boxShadow: [
-                      BoxShadow(color: theme.shadowColor.withOpacity(0.04), blurRadius: 6, offset: const Offset(0, 2)),
-                    ],
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [BoxShadow(color: theme.shadowColor.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, 6))],
                   ),
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.all(18),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const SizedBox(height: 6),
-                      const Text(
-                        'Result',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                      // Gradient header (mirrors PromptScreen)
+                      Container(
+                        height: 72,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(colors: [theme.colorScheme.primary, theme.colorScheme.primaryContainer.withOpacity(0.9)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text('Result', style: TextStyle(color: theme.colorScheme.onPrimary, fontSize: 18, fontWeight: FontWeight.w700)),
+                                  const SizedBox(height: 4),
+                                  Text('Here is what we generated for your prompt', style: TextStyle(color: theme.colorScheme.onPrimary.withOpacity(0.95), fontSize: 12)),
+                                ],
+                              ),
+                            ),
+                            CircleAvatar(radius: 16, backgroundColor: theme.colorScheme.onPrimary.withOpacity(0.18), child: Icon(Icons.image, color: theme.colorScheme.onPrimary, size: 18)),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 12),
 
-                      // Image / Error area (uses asset added to assets/images/)
+                      // Image / Error area
                       Center(
                         child: BlocBuilder<PromptBloc, PromptState>(builder: (context, state) {
-                          // When loading, show a visually distinct loader in place of the image
                           if (state is PromptLoading) {
                             return Container(
                               width: maxContentWidth - 24,
-                              height: 200,
+                              height: 220,
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
-                                  colors: [
-                                    theme.colorScheme.primary.withOpacity(0.12),
-                                    theme.colorScheme.primary.withOpacity(0.06),
-                                  ],
+                                  colors: [theme.colorScheme.primary.withOpacity(0.12), theme.colorScheme.primary.withOpacity(0.06)],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: theme.colorScheme.primary.withOpacity(0.08)),
+                                borderRadius: BorderRadius.circular(12),
                               ),
                               child: Center(
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    SizedBox(
-                                      width: 48,
-                                      height: 48,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 4,
-                                        valueColor: AlwaysStoppedAnimation(theme.colorScheme.primary),
-                                      ),
-                                    ),
+                                    SizedBox(width: 52, height: 52, child: CircularProgressIndicator(strokeWidth: 4, valueColor: AlwaysStoppedAnimation(theme.colorScheme.primary))),
                                     const SizedBox(height: 12),
                                     Text('Generating image...', style: TextStyle(color: theme.textTheme.bodyMedium?.color)),
                                   ],
@@ -94,16 +103,11 @@ class ResultScreen extends StatelessWidget {
                             );
                           }
 
-                          // Error state: show a friendly error card with Retry
                           if (state is PromptError) {
                             return Container(
                               width: maxContentWidth - 24,
                               padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.errorContainer,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: theme.colorScheme.error.withOpacity(0.12)),
-                              ),
+                              decoration: BoxDecoration(color: theme.colorScheme.errorContainer, borderRadius: BorderRadius.circular(12)),
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -113,176 +117,125 @@ class ResultScreen extends StatelessWidget {
                                   const SizedBox(height: 6),
                                   Text(state.message, textAlign: TextAlign.center, style: TextStyle(color: theme.colorScheme.onErrorContainer)),
                                   const SizedBox(height: 12),
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          // Retry with the last known prompt if any, otherwise fall back to a default
-                                          String retryPrompt = 'A cozy cabin in snowy mountains, warm lighting, 16:9';
-                                          final current = context.read<PromptBloc>().state;
-                                          if (current is PromptError) {
-                                            // No prompt stored in error state; fall back to default
-                                          } else if (current is PromptResult) {
-                                            retryPrompt = current.prompt;
-                                          }
-                                          context.read<PromptBloc>().add(GeneratePrompt(retryPrompt));
-                                        },
-                                        child: const Padding(
-                                          padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-                                          child: Text('Retry'),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      TextButton(
-                                        onPressed: () => context.read<PromptBloc>().add(PopResult()),
-                                        child: const Text('Back'),
-                                      ),
-                                    ],
-                                  ),
+                                  Row(mainAxisSize: MainAxisSize.min, children: [
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        String retryPrompt = 'A cozy cabin in snowy mountains, warm lighting, 16:9';
+                                        final current = context.read<PromptBloc>().state;
+                                        if (current is PromptResult) retryPrompt = current.prompt;
+                                        context.read<PromptBloc>().add(GeneratePrompt(retryPrompt));
+                                      },
+                                      child: const Padding(padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0), child: Text('Retry')),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    TextButton(onPressed: () => context.read<PromptBloc>().add(PopResult()), child: const Text('Back'))
+                                  ])
                                 ],
                               ),
                             );
                           }
 
                           if (state is PromptResult) {
-                            // Use the imagePath from state when available
-                            return ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: Image.asset(
-                                state.imagePath,
-                                width: maxContentWidth - 24,
-                                height: 200,
-                                fit: BoxFit.cover,
-                              ),
-                            );
-                          }
-
-                          // Placeholder when no result is available
-                          return Container(
-                            height: 180,
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.background,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: theme.colorScheme.onBackground.withOpacity(0.06)),
-                            ),
-                            child: Center(
-                              child: Icon(Icons.image, size: 48, color: theme.colorScheme.onBackground.withOpacity(0.3)),
-                            ),
-                          );
-                        }),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      const SizedBox(height: 12),
-
-                      // Action buttons (match Generate button style)
-                      ConstrainedBox(
-                        constraints: BoxConstraints(maxWidth: maxContentWidth - 24),
-                        child: BlocBuilder<PromptBloc, PromptState>(builder: (context, state) {
-                          final isLoading = state is PromptLoading;
-                          // Reuse prompt if available
-                          String currentPrompt = 'A cozy cabin in snowy mountains, warm lighting, 16:9';
-                          if (state is PromptResult) currentPrompt = state.prompt;
-
-                          // Error: show Retry + New prompt
-                          if (state is PromptError) {
                             return Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton.icon(
-                                    icon: const Icon(Icons.refresh),
-                                    label: const Padding(
-                                      padding: EdgeInsets.symmetric(vertical: 12.0),
-                                      child: Text('Retry', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                                    ),
-                                    style: ElevatedButton.styleFrom(
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                      elevation: 2,
-                                    ),
-                                    onPressed: isLoading
-                                        ? null
-                                        : () {
-                                            // Retry with fallback prompt
-                                            context.read<PromptBloc>().add(GeneratePrompt(currentPrompt));
-                                          },
-                                  ),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.asset(state.imagePath, width: maxContentWidth - 24, height: 220, fit: BoxFit.cover),
                                 ),
-                                const SizedBox(height: 8),
-                                SizedBox(
+                                const SizedBox(height: 10),
+                                // Styled prompt info
+                                Container(
                                   width: double.infinity,
-                                  child: ElevatedButton.icon(
-                                    icon: const Icon(Icons.edit),
-                                    label: const Padding(
-                                      padding: EdgeInsets.symmetric(vertical: 12.0),
-                                      child: Text('New prompt', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                                    ),
-                                    style: ElevatedButton.styleFrom(
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                      elevation: 2,
-                                    ),
-                                    onPressed: isLoading
-                                        ? null
-                                        : () {
-                                            // Navigate back to prompt input by popping result state
-                                            context.read<PromptBloc>().add(PopResult());
-                                          },
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  decoration: BoxDecoration(color: theme.colorScheme.surface, borderRadius: BorderRadius.circular(10), border: Border.all(color: theme.colorScheme.onBackground.withOpacity(0.04))),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(color: theme.colorScheme.primary.withOpacity(0.12), borderRadius: BorderRadius.circular(8)),
+                                        child: Icon(Icons.text_snippet, size: 18, color: theme.colorScheme.primary),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text('Prompt', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: theme.textTheme.bodyLarge?.color)),
+                                            const SizedBox(height: 4),
+                                            Text(state.prompt, style: TextStyle(fontSize: 13, color: theme.textTheme.bodySmall?.color), maxLines: 2, overflow: TextOverflow.ellipsis),
+                                          ],
+                                        ),
+                                      )
+                                    ],
                                   ),
                                 ),
                               ],
                             );
                           }
 
-                          // Default/result: Try another + New prompt
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
+                          return Container(
+                            height: 180,
+                            decoration: BoxDecoration(color: theme.colorScheme.background, borderRadius: BorderRadius.circular(10)),
+                            child: Center(child: Icon(Icons.image, size: 48, color: theme.colorScheme.onBackground.withOpacity(0.3))),
+                          );
+                        }),
+                      ),
+
+                      const SizedBox(height: 14),
+
+                      // Actions
+                      ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: maxContentWidth - 24),
+                        child: BlocBuilder<PromptBloc, PromptState>(builder: (context, state) {
+                          final isLoading = state is PromptLoading;
+                          String currentPrompt = 'A cozy cabin in snowy mountains, warm lighting, 16:9';
+                          if (state is PromptResult) currentPrompt = state.prompt;
+
+                          if (state is PromptError) {
+                            return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                               SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton.icon(
+                                  onPressed: isLoading ? null : () => context.read<PromptBloc>().add(GeneratePrompt(currentPrompt)),
                                   icon: const Icon(Icons.refresh),
-                                  label: const Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 12.0),
-                                    child: Text('Try another', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                    elevation: 2,
-                                  ),
-                                  onPressed: isLoading
-                                      ? null
-                                      : () {
-                                          // Dispatch GeneratePrompt with the existing prompt if available.
-                                          context.read<PromptBloc>().add(GeneratePrompt(currentPrompt));
-                                        },
+                                  label: const Padding(padding: EdgeInsets.symmetric(vertical: 12.0), child: Text('Retry', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700))),
+                                  style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 4),
                                 ),
                               ),
                               const SizedBox(height: 8),
                               SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton.icon(
+                                  onPressed: isLoading ? null : () => context.read<PromptBloc>().add(PopResult()),
                                   icon: const Icon(Icons.edit),
-                                  label: const Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 12.0),
-                                    child: Text('New prompt', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                    elevation: 2,
-                                  ),
-                                  onPressed: isLoading
-                                      ? null
-                                      : () {
-                                          // Navigate back to prompt input by popping result state
-                                          context.read<PromptBloc>().add(PopResult());
-                                        },
+                                  label: const Padding(padding: EdgeInsets.symmetric(vertical: 12.0), child: Text('New prompt', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700))),
+                                  style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 2),
                                 ),
+                              )
+                            ]);
+                          }
+
+                          return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: isLoading ? null : () => context.read<PromptBloc>().add(GeneratePrompt(currentPrompt)),
+                                icon: const Icon(Icons.refresh),
+                                label: const Padding(padding: EdgeInsets.symmetric(vertical: 12.0), child: Text('Try another', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700))),
+                                style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 4),
                               ),
-                            ],
-                          );
+                            ),
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: isLoading ? null : () => context.read<PromptBloc>().add(PopResult()),
+                                icon: const Icon(Icons.edit),
+                                label: const Padding(padding: EdgeInsets.symmetric(vertical: 12.0), child: Text('New prompt', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700))),
+                                style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 2),
+                              ),
+                            ),
+                          ]);
                         }),
                       ),
                     ],
