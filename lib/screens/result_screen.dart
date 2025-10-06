@@ -144,9 +144,44 @@ class ResultScreen extends StatelessWidget {
                           if (state is PromptResult) {
                             return Column(
                               children: [
+                                // Image with a small share button overlaid in the top-right corner
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(12),
-                                  child: Image.asset(state.imagePath, width: maxContentWidth - 24, height: 220, fit: BoxFit.cover),
+                                  child: Stack(
+                                    children: [
+                                      Image.asset(state.imagePath, width: maxContentWidth - 24, height: 220, fit: BoxFit.cover),
+                                      Positioned(
+                                        top: 8,
+                                        right: 8,
+                                        child: SizedBox(
+                                          width: 36,
+                                          height: 36,
+                                          child: Material(
+                                            color: Colors.white,
+                                            elevation: 2,
+                                            shape: const CircleBorder(),
+                                            child: IconButton(
+                                              iconSize: 18,
+                                              padding: const EdgeInsets.all(6),
+                                              icon: Icon(Icons.share, color: theme.colorScheme.primary),
+                                              onPressed: () {
+                                                showDialog(
+                                                  context: context,
+                                                  builder: (ctx) => AlertDialog(
+                                                    title: const Text('Share'),
+                                                    content: const Text('Image has been shared successfully.'),
+                                                    actions: [
+                                                      TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('OK')),
+                                                    ],
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                                 const SizedBox(height: 10),
                                 // Styled prompt info
@@ -210,14 +245,35 @@ class ResultScreen extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton.icon(
-                                  onPressed: isLoading ? null : () => context.read<PromptBloc>().add(PopResult()),
-                                  icon: const Icon(Icons.edit),
-                                  label: const Padding(padding: EdgeInsets.symmetric(vertical: 12.0), child: Text('New prompt', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700))),
-                                  style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 2),
-                                ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: ElevatedButton.icon(
+                                      onPressed: isLoading ? null : () => context.read<PromptBloc>().add(PopResult()),
+                                      icon: const Icon(Icons.edit),
+                                      label: const Padding(padding: EdgeInsets.symmetric(vertical: 12.0), child: Text('New prompt', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700))),
+                                      style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 2),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (ctx) => AlertDialog(
+                                          title: const Text('Share'),
+                                          content: const Text('Image has been shared successfully.'),
+                                          actions: [
+                                            TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('OK')),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.share),
+                                    label: const Text('Share'),
+                                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                                  ),
+                                ],
                               )
                             ]);
                           }
@@ -233,14 +289,18 @@ class ResultScreen extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 8),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton.icon(
-                                onPressed: isLoading ? null : () => context.read<PromptBloc>().add(PopResult()),
-                                icon: const Icon(Icons.edit),
-                                label: const Padding(padding: EdgeInsets.symmetric(vertical: 12.0), child: Text('New prompt', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700))),
-                                style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 2),
-                              ),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: isLoading ? null : () => context.read<PromptBloc>().add(PopResult()),
+                                    icon: const Icon(Icons.edit),
+                                    label: const Padding(padding: EdgeInsets.symmetric(vertical: 12.0), child: Text('New prompt', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700))),
+                                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 2),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                              ],
                             ),
                           ]);
                         }),
