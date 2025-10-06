@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import '../services/mock_api.dart';
 
 // Events
 abstract class PromptEvent extends Equatable {
@@ -30,9 +31,12 @@ class PromptLoading extends PromptState {}
 
 class PromptResult extends PromptState {
   final String prompt;
-  const PromptResult(this.prompt);
+  final String imagePath;
+
+  const PromptResult(this.prompt, this.imagePath);
+
   @override
-  List<Object?> get props => [prompt];
+  List<Object?> get props => [prompt, imagePath];
 }
 
 // Bloc
@@ -43,11 +47,15 @@ class PromptBloc extends Bloc<PromptEvent, PromptState> {
   }
 
   void _onGenerate(GeneratePrompt event, Emitter<PromptState> emit) async {
-    // Simple synchronous flow for now. Replace with async generation if needed.
+    // Start loading and call the Mock API to generate an image.
     emit(PromptLoading());
-    // simulate a short delay to show loading state in UI (non-blocking)
-    await Future.delayed(const Duration(milliseconds: 250));
-    emit(PromptResult(event.prompt));
+    try {
+      final imagePath = await MockApi.generate(event.prompt);
+      emit(PromptResult(event.prompt, imagePath));
+    } catch (e) {
+      // For this simple mock, fall back to initial state on error.
+      emit(PromptInitial());
+    }
   }
 
   void _onPop(PopResult event, Emitter<PromptState> emit) {

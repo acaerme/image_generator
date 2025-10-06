@@ -57,11 +57,49 @@ class ResultScreen extends StatelessWidget {
                       // Image area (uses asset added to assets/images/)
                       Center(
                         child: BlocBuilder<PromptBloc, PromptState>(builder: (context, state) {
+                          // When loading, show a visually distinct loader in place of the image
+                          if (state is PromptLoading) {
+                            return Container(
+                              width: maxContentWidth - 24,
+                              height: 200,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    theme.colorScheme.primary.withOpacity(0.12),
+                                    theme.colorScheme.primary.withOpacity(0.06),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: theme.colorScheme.primary.withOpacity(0.08)),
+                              ),
+                              child: Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SizedBox(
+                                      width: 48,
+                                      height: 48,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 4,
+                                        valueColor: AlwaysStoppedAnimation(theme.colorScheme.primary),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text('Generating image...', style: TextStyle(color: theme.textTheme.bodyMedium?.color)),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }
+
                           if (state is PromptResult) {
+                            // Use the imagePath from state when available
                             return ClipRRect(
                               borderRadius: BorderRadius.circular(10),
                               child: Image.asset(
-                                'assets/images/generated_image.jpg',
+                                state.imagePath,
                                 width: maxContentWidth - 24,
                                 height: 200,
                                 fit: BoxFit.cover,
@@ -91,46 +129,59 @@ class ResultScreen extends StatelessWidget {
                       // Action buttons (match Generate button style)
                       ConstrainedBox(
                         constraints: BoxConstraints(maxWidth: maxContentWidth - 24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton.icon(
-                                icon: const Icon(Icons.refresh),
-                                label: const Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 12.0),
-                                  child: Text('Try another', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                        child: BlocBuilder<PromptBloc, PromptState>(builder: (context, state) {
+                          final isLoading = state is PromptLoading;
+                          // Reuse prompt if available
+                          String currentPrompt = 'A cozy cabin in snowy mountains, warm lighting, 16:9';
+                          if (state is PromptResult) currentPrompt = state.prompt;
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  icon: const Icon(Icons.refresh),
+                                  label: const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 12.0),
+                                    child: Text('Try another', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    elevation: 2,
+                                  ),
+                                  onPressed: isLoading
+                                      ? null
+                                      : () {
+                                          // Dispatch GeneratePrompt with the existing prompt if available.
+                                          context.read<PromptBloc>().add(GeneratePrompt(currentPrompt));
+                                        },
                                 ),
-                                style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                  elevation: 2,
-                                ),
-                                onPressed: () {
-                                  debugPrint('Tap');
-                                },
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton.icon(
-                                icon: const Icon(Icons.edit),
-                                label: const Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 12.0),
-                                  child: Text('New prompt', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                              const SizedBox(height: 8),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  icon: const Icon(Icons.edit),
+                                  label: const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 12.0),
+                                    child: Text('New prompt', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    elevation: 2,
+                                  ),
+                                  onPressed: isLoading
+                                      ? null
+                                      : () {
+                                          // Navigate back to prompt input by popping result state
+                                          context.read<PromptBloc>().add(PopResult());
+                                        },
                                 ),
-                                style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                  elevation: 2,
-                                ),
-                                onPressed: () {
-                                  debugPrint('Tap');
-                                },
                               ),
-                            ),
-                          ],
-                        ),
+                            ],
+                          );
+                        }),
                       ),
                     ],
                   ),

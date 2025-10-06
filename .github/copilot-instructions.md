@@ -1,6 +1,55 @@
 <!-- Short, actionable guidance for AI coding agents working on this repository. -->
 # Copilot instructions — image_generator
 
+Overview
+- Single-module Flutter app. Entrypoint: `lib/main.dart`.
+- Core UX flow: Prompt -> Generate -> Result. Navigation uses Navigator 2.0 (RouterDelegate + RouteInformationParser). State and navigation signaling are driven by a single `PromptBloc` (flutter_bloc).
+
+Fast reading order (start here)
+- `lib/navigation/app_router.dart` — RouterDelegate listens to `PromptBloc` and builds the page stack (home + optional `ResultScreen`). See `AppRouterDelegate` for how navigation is triggered from bloc events.
+- `lib/bloc/prompt_bloc.dart` — Events: `GeneratePrompt`, `PopResult`. States: `PromptInitial`, `PromptLoading`, `PromptResult`.
+- `lib/screens/prompt_screen.dart` — Text input and generate button; dispatches `GeneratePrompt`.
+- `lib/screens/result_screen.dart` — Shows `assets/images/generated_image.jpg` when `PromptResult` is active; back button dispatches `PopResult`.
+
+Concrete examples & important patterns
+- Router lifecycle: `AppRouterDelegate` + `AppRouteParser` are created in `lib/main.dart` and must be disposed in `MyApp.dispose()` (call `routerDelegate.dispose()` and `promptBloc.close()`).
+- Router <-> Bloc coupling: the RouterDelegate listens to `promptBloc.stream` and calls `notifyListeners()` on changes. When adding navigation-related events, update both `PromptBloc` and `AppRouterDelegate`.
+- UI state rendering: use `BlocBuilder<PromptBloc, PromptState>` to show loading and result states (see `PromptScreen` and `ResultScreen`).
+- Responsive UI convention: cap content width with a `ConstrainedBox` and compute `maxContentWidth` using `MediaQuery` (both screens follow this pattern).
+- Dispose everything: always `dispose()` controllers, subscriptions and blocs (examples: `_controller.dispose()` in `PromptScreen`, `promptSub.cancel()` in `AppRouterDelegate.dispose()`).
+
+Developer workflows (commands you will run)
+- Install dependencies: `flutter pub get` (from repo root).
+- Run locally: `flutter run` or `flutter run -d <deviceId>` (e.g. `-d chrome`). Use `r` for hot reload.
+- Static checks & tests: `flutter analyze` and `flutter test`.
+- Build for release: `flutter build <platform>` (e.g. `apk`, `web`, `macos`).
+
+Files & places to check when changing behavior
+- Routing & bootstrap: `lib/main.dart`, `lib/navigation/app_router.dart`.
+- State & business logic: `lib/bloc/prompt_bloc.dart`.
+- UI: `lib/screens/prompt_screen.dart`, `lib/screens/result_screen.dart`.
+- Assets: `assets/images/` (project includes `generated_image.jpg` referenced by `ResultScreen`).
+- Lints & config: `analysis_options.yaml`, `pubspec.yaml` (deps include `flutter_bloc`, `bloc`, `equatable`).
+
+Integration points & gotchas (discovered from code)
+- Deep links: `AppRouteParser` maps `/result` to a result route. If you add deep-linking support, make sure `PromptBloc` can accept external navigation events or extend `setNewRoutePath`.
+- Assets: `assets/images/` is declared in `pubspec.yaml`. Adding images under this folder does not require changing pubspec unless you add a different path.
+- Navigation design decision: navigation state is not stored in Navigator alone — it mirrors `PromptBloc` state. Do not update the page stack without updating the bloc's state transitions.
+- Do not commit native platform secrets: `local.properties` and platform signing files should not be committed.
+
+PR & QA checklist for agents
+- Run `flutter analyze` and fix analyzer errors before opening a PR.
+- Run `flutter test` and include the output in the PR description.
+- Keep PRs small and focused (one screen/feature/bugfix per PR). For navigation changes, include a short recording or screenshots demonstrating the flow.
+
+Where to add tests or small improvements
+- Unit-test `PromptBloc` transitions (happy path: Generate -> Loading -> Result; pop -> Initial).
+- Add widget tests for `PromptScreen` to assert that generate button dispatches the event and shows loading UI.
+
+If something is unclear or you want deeper examples (tests, CI steps, PR templates), tell me what to add and I will iterate.
+<!-- Short, actionable guidance for AI coding agents working on this repository. -->
+# Copilot instructions — image_generator
+
 Quick context
 - Single-module Flutter app (entry: `lib/main.dart`). Core flow: prompt -> generate -> show result.
 - Uses Navigator 2.0 (RouterDelegate + RouteInformationParser) and `flutter_bloc` for state & navigation signaling.
