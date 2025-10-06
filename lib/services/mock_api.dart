@@ -22,8 +22,20 @@ class MockApi {
       throw Exception('Mock API failure: simulated transient error');
     }
 
-    // Return the bundled image asset used by the app.
-    // In a real integration this would be a remote URL or a saved file path.
+    // Simple keyword mapping: if prompt looks like one of the examples, return
+    // the corresponding example asset. Otherwise return the generated image.
+    final lower = prompt.toLowerCase();
+    if (lower.contains('desktop') || lower.contains('desk') || lower.contains('workspace') || lower.contains('cozy')) {
+      return 'assets/images/example_1.jpg';
+    }
+    if (lower.contains('cloud') || lower.contains('clouds') || lower.contains('sky')) {
+      return 'assets/images/example_2.jpg';
+    }
+    if (lower.contains('river') || lower.contains('stream') || lower.contains('water')) {
+      return 'assets/images/example_3.jpg';
+    }
+
+    // Default fallback
     return 'assets/images/generated_image.jpg';
   }
 }

@@ -9,6 +9,82 @@ class PromptScreen extends StatefulWidget {
   State<PromptScreen> createState() => _PromptScreenState();
 }
 
+class _SuggestionChip extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _SuggestionChip({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.primary.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: theme.colorScheme.primary.withOpacity(0.12)),
+        ),
+        child: Text(label, style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600)),
+      ),
+    );
+  }
+}
+
+class _ExampleCard extends StatelessWidget {
+  final String asset;
+  final String title;
+  final VoidCallback onUse;
+
+  const _ExampleCard({required this.asset, required this.title, required this.onUse});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: GestureDetector(
+        onTap: onUse,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Image.asset(asset, fit: BoxFit.cover),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(colors: [Colors.black.withOpacity(0.18), Colors.black.withOpacity(0.04)], begin: Alignment.bottomCenter, end: Alignment.topCenter),
+                ),
+              ),
+              Positioned(
+                left: 12,
+                right: 12,
+                bottom: 12,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600), maxLines: 2, overflow: TextOverflow.ellipsis),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: onUse,
+                      style: ElevatedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                      child: const Text('Use'),
+                    )
+                  ],
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
 class _PromptScreenState extends State<PromptScreen> {
   final TextEditingController _controller = TextEditingController();
 
@@ -16,6 +92,23 @@ class _PromptScreenState extends State<PromptScreen> {
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  void _applySuggestion(String suggestion) {
+    final current = _controller.text.trim();
+    final newText = current.isEmpty ? suggestion : '$current, $suggestion';
+    _controller.text = newText;
+    _controller.selection = TextSelection.fromPosition(TextPosition(offset: newText.length));
+    setState(() {});
+  }
+
+  void _applyExample(String example) {
+    // Replace the current prompt with the example and focus the field
+    _controller.text = example;
+    _controller.selection = TextSelection.fromPosition(TextPosition(offset: example.length));
+    setState(() {});
+    // give keyboard focus
+    FocusScope.of(context).requestFocus(FocusNode());
   }
 
   @override
@@ -47,93 +140,145 @@ class _PromptScreenState extends State<PromptScreen> {
                 child: Container(
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: theme.colorScheme.primary.withOpacity(0.12)),
+                    borderRadius: BorderRadius.circular(16),
                     boxShadow: [
-                      BoxShadow(color: theme.shadowColor.withOpacity(0.04), blurRadius: 6, offset: const Offset(0, 2)),
+                      BoxShadow(color: theme.shadowColor.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, 6)),
                     ],
                   ),
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.all(18),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const SizedBox(height: 6),
-                      const Text(
-                        'Create an image',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Briefly describe the image you want. Be specific for better results.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 13),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Preview placeholder
+                      // Gradient header strip
                       Container(
-                        height: 180,
+                        height: 84,
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.background,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: theme.colorScheme.onBackground.withOpacity(0.06)),
+                          gradient: LinearGradient(colors: [theme.colorScheme.primary, theme.colorScheme.primaryContainer.withOpacity(0.9)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Center(
-                          child: Icon(Icons.image, size: 48, color: theme.colorScheme.onBackground.withOpacity(0.3)),
-                        ),
-                      ),
-
-                      const SizedBox(height: 12),
-                      Center(
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: maxContentWidth - 24),
-                          child: TextField(
-                            controller: _controller,
-                            decoration: InputDecoration(
-                              hintText: 'A cozy cabin in snowy mountains, warm lighting, 16:9',
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                              prefixIcon: const Icon(Icons.edit, size: 20),
-                              filled: true,
-                              fillColor: theme.colorScheme.surface,
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(color: theme.colorScheme.primary.withOpacity(0.18)),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.8),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text('Create an image', style: TextStyle(color: theme.colorScheme.onPrimary, fontSize: 20, fontWeight: FontWeight.w700)),
+                                  const SizedBox(height: 6),
+                                  Text('Describe what you want and we’ll try to generate it.', style: TextStyle(color: theme.colorScheme.onPrimary.withOpacity(0.9), fontSize: 12)),
+                                ],
                               ),
                             ),
-                            maxLines: 4,
-                            onChanged: (s) => setState(() {}),
-                          ),
+                            CircleAvatar(
+                              radius: 18,
+                              backgroundColor: theme.colorScheme.onPrimary.withOpacity(0.2),
+                              child: Icon(Icons.photo_camera, color: theme.colorScheme.onPrimary, size: 20),
+                            ),
+                          ],
                         ),
                       ),
                       const SizedBox(height: 14),
 
+                      // Suggestion chips
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        children: [
+                          _SuggestionChip(label: 'cinematic', onTap: () => _applySuggestion('cinematic')),
+                          _SuggestionChip(label: 'photorealistic', onTap: () => _applySuggestion('photorealistic')),
+                          _SuggestionChip(label: '16:9', onTap: () => _applySuggestion('16:9')),
+                          _SuggestionChip(label: 'vibrant colors', onTap: () => _applySuggestion('vibrant colors')),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Examples carousel (replace placeholder)
+                      SizedBox(
+                        height: 170,
+                        child: PageView(
+                          controller: PageController(viewportFraction: 0.86),
+                          children: [
+                            _ExampleCard(
+                              asset: 'assets/images/example_1.jpg',
+                              title: 'Cozy desktop workspace by a window, warm lamp light, plants',
+                              onUse: () => _applyExample('Cozy desktop workspace by a window, warm lamp light, plants, shallow depth of field'),
+                            ),
+                            _ExampleCard(
+                              asset: 'assets/images/example_2.jpg',
+                              title: 'Soft clouds over rolling hills at golden hour',
+                              onUse: () => _applyExample('Soft clouds over rolling hills at golden hour, high dynamic range, wide angle'),
+                            ),
+                            _ExampleCard(
+                              asset: 'assets/images/example_3.jpg',
+                              title: 'Serene river flowing through a forest, misty morning',
+                              onUse: () => _applyExample('Serene river flowing through a forest, misty morning, photorealistic'),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // Input area
+                      ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: maxContentWidth - 16),
+                        child: TextField(
+                          controller: _controller,
+                          decoration: InputDecoration(
+                            hintText: 'Describe what you want to see…',
+                            prefixIcon: const Icon(Icons.edit, size: 20),
+                            suffixIcon: _controller.text.trim().isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(Icons.close, size: 20),
+                                    onPressed: () {
+                                      _controller.clear();
+                                      setState(() {});
+                                    },
+                                  )
+                                : null,
+                            filled: true,
+                            fillColor: theme.colorScheme.surface,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                          ),
+                          maxLines: 4,
+                          onChanged: (s) => setState(() {}),
+                        ),
+                      ),
+
+                      const SizedBox(height: 14),
+
+                      // Generate button
                       SizedBox(
                         width: double.infinity,
                         child: BlocBuilder<PromptBloc, PromptState>(builder: (context, state) {
                           final isLoading = state is PromptLoading;
-                          return ElevatedButton.icon(
-                            icon: isLoading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.auto_fix_high),
-                            label: const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 12.0),
-                              child: Text('Generate', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              elevation: 2,
-                            ),
+                          return ElevatedButton(
                             onPressed: (hasText && !isLoading)
                                 ? () {
-                                    // Dispatch event to Bloc which the RouterDelegate listens to
                                     final bloc = context.read<PromptBloc>();
                                     bloc.add(GeneratePrompt(_controller.text.trim()));
                                   }
                                 : null,
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              elevation: 6,
+                            ),
+                            child: isLoading
+                                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                : Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: const [
+                                      Icon(Icons.auto_fix_high),
+                                      SizedBox(width: 8),
+                                      Text('Generate', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                                    ],
+                                  ),
                           );
                         }),
                       ),
