@@ -26,14 +26,14 @@ class _SuggestionChip extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
         onTap: onTap,
-        splashColor: theme.colorScheme.primary.withOpacity(0.16),
-        highlightColor: theme.colorScheme.primary.withOpacity(0.06),
+  splashColor: theme.colorScheme.primary.withAlpha(41),
+  highlightColor: theme.colorScheme.primary.withAlpha(15),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: theme.colorScheme.primary.withOpacity(0.06),
+            color: theme.colorScheme.primary.withAlpha(15),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: theme.colorScheme.primary.withOpacity(0.12)),
+            border: Border.all(color: theme.colorScheme.primary.withAlpha(31)),
           ),
           child: Text(label, style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600)),
         ),
@@ -51,7 +51,6 @@ class _ExampleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: GestureDetector(
@@ -64,7 +63,7 @@ class _ExampleCard extends StatelessWidget {
               Image.asset(asset, fit: BoxFit.cover),
               Container(
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [Colors.black.withOpacity(0.18), Colors.black.withOpacity(0.04)], begin: Alignment.bottomCenter, end: Alignment.topCenter),
+                  gradient: LinearGradient(colors: [Colors.black.withAlpha(46), Colors.black.withAlpha(10)], begin: Alignment.bottomCenter, end: Alignment.topCenter),
                 ),
               ),
               Positioned(
@@ -129,7 +128,8 @@ class _PromptScreenState extends State<PromptScreen> {
     final maxContentWidth = screenWidth < 480 ? screenWidth * 0.95 : 460.0;
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
+      // `background` color is deprecated; use `surface` for the same visual role here.
+      backgroundColor: theme.colorScheme.surface,
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Container(
@@ -153,7 +153,7 @@ class _PromptScreenState extends State<PromptScreen> {
                     color: theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
-                      BoxShadow(color: theme.shadowColor.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, 6)),
+                      BoxShadow(color: theme.shadowColor.withAlpha(15), blurRadius: 10, offset: const Offset(0, 6)),
                     ],
                   ),
                   padding: const EdgeInsets.all(18),
@@ -164,7 +164,7 @@ class _PromptScreenState extends State<PromptScreen> {
                       Container(
                         height: 84,
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(colors: [theme.colorScheme.primary, theme.colorScheme.primaryContainer.withOpacity(0.9)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                          gradient: LinearGradient(colors: [theme.colorScheme.primary, theme.colorScheme.primaryContainer.withAlpha(230)], begin: Alignment.topLeft, end: Alignment.bottomRight),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -178,13 +178,13 @@ class _PromptScreenState extends State<PromptScreen> {
                                 children: [
                                   Text('Create an image', style: TextStyle(color: theme.colorScheme.onPrimary, fontSize: 20, fontWeight: FontWeight.w700)),
                                   const SizedBox(height: 6),
-                                  Text('Describe what you want and we’ll try to generate it.', style: TextStyle(color: theme.colorScheme.onPrimary.withOpacity(0.9), fontSize: 12)),
+                                  Text('Describe what you want and we’ll try to generate it.', style: TextStyle(color: theme.colorScheme.onPrimary.withAlpha(230), fontSize: 12)),
                                 ],
                               ),
                             ),
                             CircleAvatar(
                               radius: 18,
-                              backgroundColor: theme.colorScheme.onPrimary.withOpacity(0.2),
+                              backgroundColor: theme.colorScheme.onPrimary.withAlpha(51),
                               child: Icon(Icons.photo_camera, color: theme.colorScheme.onPrimary, size: 20),
                             ),
                           ],

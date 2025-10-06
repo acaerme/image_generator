@@ -50,7 +50,7 @@ class ResultScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
-                    boxShadow: [BoxShadow(color: theme.shadowColor.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, 6))],
+                    boxShadow: [BoxShadow(color: theme.shadowColor.withAlpha(15), blurRadius: 10, offset: const Offset(0, 6))],
                   ),
                   padding: const EdgeInsets.all(18),
                   child: Column(
@@ -61,7 +61,7 @@ class ResultScreen extends StatelessWidget {
                       Container(
                         height: 72,
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(colors: [theme.colorScheme.primary, theme.colorScheme.primaryContainer.withOpacity(0.9)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                          gradient: LinearGradient(colors: [theme.colorScheme.primary, theme.colorScheme.primaryContainer.withAlpha(230)], begin: Alignment.topLeft, end: Alignment.bottomRight),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -75,11 +75,11 @@ class ResultScreen extends StatelessWidget {
                                 children: [
                                   Text('Result', style: TextStyle(color: theme.colorScheme.onPrimary, fontSize: 18, fontWeight: FontWeight.w700)),
                                   const SizedBox(height: 4),
-                                  Text('Here is what we generated for your prompt', style: TextStyle(color: theme.colorScheme.onPrimary.withOpacity(0.95), fontSize: 12)),
+                                  Text('Here is what we generated for your prompt', style: TextStyle(color: theme.colorScheme.onPrimary.withAlpha(242), fontSize: 12)),
                                 ],
                               ),
                             ),
-                            CircleAvatar(radius: 16, backgroundColor: theme.colorScheme.onPrimary.withOpacity(0.18), child: Icon(Icons.image, color: theme.colorScheme.onPrimary, size: 18)),
+                            CircleAvatar(radius: 16, backgroundColor: theme.colorScheme.onPrimary.withAlpha(46), child: Icon(Icons.image, color: theme.colorScheme.onPrimary, size: 18)),
                           ],
                         ),
                       ),
@@ -94,7 +94,7 @@ class ResultScreen extends StatelessWidget {
                               height: 220,
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
-                                  colors: [theme.colorScheme.primary.withOpacity(0.12), theme.colorScheme.primary.withOpacity(0.06)],
+                                  colors: [theme.colorScheme.primary.withAlpha(31), theme.colorScheme.primary.withAlpha(15)],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),
@@ -190,12 +190,12 @@ class ResultScreen extends StatelessWidget {
                                 Container(
                                   width: double.infinity,
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                  decoration: BoxDecoration(color: theme.colorScheme.surface, borderRadius: BorderRadius.circular(10), border: Border.all(color: theme.colorScheme.onBackground.withOpacity(0.04))),
+                                  decoration: BoxDecoration(color: theme.colorScheme.surface, borderRadius: BorderRadius.circular(10), border: Border.all(color: theme.colorScheme.onSurface.withAlpha(10))),
                                   child: Row(
                                     children: [
                                       Container(
                                         padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(color: theme.colorScheme.primary.withOpacity(0.12), borderRadius: BorderRadius.circular(8)),
+                                        decoration: BoxDecoration(color: theme.colorScheme.primary.withAlpha(31), borderRadius: BorderRadius.circular(8)),
                                         child: Icon(Icons.text_snippet, size: 18, color: theme.colorScheme.primary),
                                       ),
                                       const SizedBox(width: 12),
@@ -218,8 +218,9 @@ class ResultScreen extends StatelessWidget {
 
                           return Container(
                             height: 180,
-                            decoration: BoxDecoration(color: theme.colorScheme.background, borderRadius: BorderRadius.circular(10)),
-                            child: Center(child: Icon(Icons.image, size: 48, color: theme.colorScheme.onBackground.withOpacity(0.3))),
+                            // use `surface` instead of deprecated `background`
+                            decoration: BoxDecoration(color: theme.colorScheme.surface, borderRadius: BorderRadius.circular(10)),
+                            child: Center(child: Icon(Icons.image, size: 48, color: theme.colorScheme.onSurface.withAlpha(77))),
                           );
                         }),
                       ),

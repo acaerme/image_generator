@@ -64,6 +64,9 @@ class AppRouterDelegate extends RouterDelegate<AppRoutePath>
         const MaterialPage(child: PromptScreen()),
         if (_showResult) MaterialPage(child: ResultScreen()),
       ],
+      // Use onPopPage for now (onDidRemovePage caused a type error on some SDKs).
+      // Suppress the deprecation lint so analysis is clean while behavior is unchanged.
+      // ignore: deprecated_member_use
       onPopPage: (route, result) {
         if (!route.didPop(result)) return false;
         promptBloc.add(PopResult());
