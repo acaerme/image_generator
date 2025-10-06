@@ -119,12 +119,18 @@ class ResultScreen extends StatelessWidget {
                                   const SizedBox(height: 12),
                                   Row(mainAxisSize: MainAxisSize.min, children: [
                                     ElevatedButton(
-                                      onPressed: () {
-                                        String retryPrompt = 'A cozy cabin in snowy mountains, warm lighting, 16:9';
-                                        final current = context.read<PromptBloc>().state;
-                                        if (current is PromptResult) retryPrompt = current.prompt;
-                                        context.read<PromptBloc>().add(GeneratePrompt(retryPrompt));
-                                      },
+                                        onPressed: () {
+                                          // Retry using the prompt that produced the error if available,
+                                          // otherwise fall back to the last successful prompt or a sensible default.
+                                          String retryPrompt = 'A cozy cabin in snowy mountains, warm lighting, 16:9';
+                                          final current = context.read<PromptBloc>().state;
+                                          if (current is PromptError && current.prompt.isNotEmpty) {
+                                            retryPrompt = current.prompt;
+                                          } else if (current is PromptResult) {
+                                            retryPrompt = current.prompt;
+                                          }
+                                          context.read<PromptBloc>().add(GeneratePrompt(retryPrompt));
+                                        },
                                       child: const Padding(padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0), child: Text('Retry')),
                                     ),
                                     const SizedBox(width: 8),
@@ -190,6 +196,7 @@ class ResultScreen extends StatelessWidget {
                           final isLoading = state is PromptLoading;
                           String currentPrompt = 'A cozy cabin in snowy mountains, warm lighting, 16:9';
                           if (state is PromptResult) currentPrompt = state.prompt;
+                          if (state is PromptError && state.prompt.isNotEmpty) currentPrompt = state.prompt;
 
                           if (state is PromptError) {
                             return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [

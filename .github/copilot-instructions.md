@@ -6,44 +6,53 @@ Quick overview
 - Single-module Flutter app. Entrypoint: `lib/main.dart`.
 - Primary flow: Prompt -> Generate -> Result. Navigation is implemented with Navigator 2.0 (custom `AppRouterDelegate` + `AppRouteParser`) and is driven by a single `PromptBloc` (flutter_bloc).
 
-Read-first (fast path)
-- `lib/navigation/app_router.dart` — RouterDelegate composes pages from `PromptBloc` state (watch how `PromptLoading`/`PromptResult` map to pages).
-- `lib/bloc/prompt_bloc.dart` — single source of truth for generation and navigation events/states.
-- `lib/screens/prompt_screen.dart` & `lib/screens/result_screen.dart` — UI patterns: responsive container, lifecycle disposal, `BlocBuilder` usage.
+```markdown
+<!-- Copilot instructions — image_generator (merged & trimmed)
 
-Important patterns & rules (do not ignore)
-- Router ↔ Bloc coupling: the navigation stack is a projection of `PromptBloc` state. Never mutate Navigator directly without emitting the corresponding Bloc event/state. See `AppRouterDelegate` subscription to `promptBloc.stream`.
-- Lifecycle: create and dispose `routerDelegate` and `promptBloc` in `MyApp` (`dispose()` calls exist in `lib/main.dart`). Dispose controllers and subscriptions (examples: `_controller.dispose()` in `PromptScreen`, `promptSub.cancel()` in `AppRouterDelegate`).
-- Responsive layout: constrain content width with a `ConstrainedBox` and use `MediaQuery`-derived `maxContentWidth` (pattern shown in both screens).
-- State handling: UI reads `PromptBloc` states — `ResultScreen` expects `PromptResult.imagePath` to display the generated image.
-- Assets: put generated/static images under `assets/images/` and reference them via `pubspec.yaml`.
+Quick summary
+- Single-module Flutter app. Entrypoint: `lib/main.dart`.
+- User flow: Prompt -> Generate -> Result. Navigation is implemented with Navigator 2.0 using a custom `AppRouterDelegate` + `AppRouteParser` and driven entirely by `PromptBloc` (flutter_bloc).
 
-Developer workflows (concrete commands)
-- Install deps: `flutter pub get` at repo root after updating `pubspec.yaml`.
-- Run locally: `flutter run` (or `flutter run -d <deviceId>`). Use `r` for hot reload.
-- Static checks & tests: `flutter analyze` and `flutter test`.
+Read this first (fast path)
+- `lib/navigation/app_router.dart` — RouterDelegate composes the page stack from `PromptBloc` state. Look for the `promptSub` subscription which keeps Navigator in sync.
+- `lib/bloc/prompt_bloc.dart` — single source of truth: events (user actions & deep links), states (PromptInitial/PromptLoading/PromptResult/PromptError), and the async generation flow (calls `lib/services/mock_api.dart`).
+- `lib/screens/prompt_screen.dart` & `lib/screens/result_screen.dart` — UI patterns: constrained layout, controller disposal, and `BlocBuilder` usage.
+
+Critical project rules (must follow)
+- Router ↔ Bloc coupling: the navigation stack is a projection of `PromptBloc` state. Never manipulate Navigator directly; emit a Bloc event instead. (See `AppRouterDelegate` behavior mapping from states to pages.)
+- Lifecycle: `routerDelegate` and `promptBloc` are created/disposed in `MyApp` (`lib/main.dart`). Dispose any controllers/subscriptions you add.
+- Deep-linking/back navigation: when adding routes update both `AppRouteParser.setNewRoutePath` and `PromptBloc` so state and parsed routes stay consistent.
+
+Developer workflows & commands (concrete)
+- Install deps: run `flutter pub get` in repo root after editing `pubspec.yaml`.
+- Run: `flutter run` or `flutter run -d <deviceId>`; press `r` for hot reload.
+- Analyze & tests: `flutter analyze` and `flutter test`.
 - Build: `flutter build <platform>` (e.g. `apk`, `web`, `macos`).
 
-Conventions and project-specific guidance
-- Follow the existing Bloc-driven navigation: adding routes requires updates in `AppRouteParser.setNewRoutePath` and `PromptBloc` so deeplinks and back navigation stay consistent.
-- Prefer adding small, focused tests: unit tests for `PromptBloc` (happy & error paths) and widget tests for `PromptScreen` interactions.
-- Keep PRs minimal. For navigation changes include a short screencast or screenshots showing back/forward behavior.
+Integration points & conventions
+- Mock API: `lib/services/mock_api.dart` — used by `PromptBloc`. Replace or extend for real APIs; keep the same async contract (returns a path to a generated image).
+- Assets: generated or static images live in `assets/images/` and are referenced in `pubspec.yaml` (see `assets/images/generated_image.jpg` example).
+- Navigation & state: Add UI pages by creating a new State in `PromptBloc` and mapping it to a Page in `AppRouterDelegate`. Update `AppRouteParser` for deeplink parsing.
 
-Key files to inspect when making changes
-- `lib/main.dart` — app bootstrap, wiring of router & bloc.
-- `lib/navigation/app_router.dart` — page stack, deep-link mapping, router delegate implementation.
-- `lib/bloc/prompt_bloc.dart` — events, states, and async generation flow (calls `lib/services/mock_api.dart`).
-- `lib/screens/prompt_screen.dart` & `lib/screens/result_screen.dart` — UI structure, layout, and Bloc usage.
-- `lib/services/mock_api.dart` — mocked service used by the bloc; replace/extend for real APIs.
+Examples (how to change navigation safely)
+- To add a new Result variant:
+	- Add a new `PromptState` subclass in `lib/bloc/prompt_bloc.dart`.
+	- Map that state to a `Page` in `lib/navigation/app_router.dart`.
+	- Update `AppRouteParser.setNewRoutePath` to parse the new deeplink and emit a corresponding `PromptEvent`.
+
+Files worth inspecting (quick links)
+- `lib/main.dart` — app bootstrap and disposal.
+- `lib/navigation/app_router.dart` — router delegate, page mapping, `promptSub`.
+- `lib/bloc/prompt_bloc.dart` — events/states and generation flow.
+- `lib/screens/prompt_screen.dart`, `lib/screens/result_screen.dart` — UI & Bloc usage.
+- `lib/services/mock_api.dart` — mocked backend contract.
 
 PR checklist for agents
-- Run `flutter analyze` and `flutter test` locally; fix new analyzer errors.
-- Update `AppRouteParser` + `PromptBloc` together when changing navigation.
-- Add tests for new logic and keep changes scoped to a single feature where possible.
+- Run `flutter analyze` and `flutter test` after changes.
+- Update `AppRouteParser` and `PromptBloc` together for any navigation change.
+- Keep tests small: unit tests for `PromptBloc` transitions (happy & error) and widget tests for `PromptScreen` interactions.
 
-Where to add small improvements
-- Add unit tests for `PromptBloc` transitions (happy/error paths).
-- Add widget tests for `PromptScreen` to validate button dispatches and loading UI.
-
-If any of the above is unclear or you want example test templates or CI steps, tell me which section to expand and I will iterate.
+If something here is unclear or you want short test templates / CI snippets, tell me which part to expand.
 -->
+
+```

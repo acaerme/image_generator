@@ -41,10 +41,11 @@ class PromptResult extends PromptState {
 
 class PromptError extends PromptState {
   final String message;
-  const PromptError(this.message);
+  final String prompt;
+  const PromptError(this.message, [this.prompt = '']);
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [message, prompt];
 }
 
 // Bloc
@@ -63,7 +64,8 @@ class PromptBloc extends Bloc<PromptEvent, PromptState> {
     } catch (e) {
       // Surface the error so the UI can present a retry affordance.
       final message = e?.toString() ?? 'Unknown error';
-      emit(PromptError(message));
+      // Include the prompt that failed so the UI can retry with the same input
+      emit(PromptError(message, event.prompt));
     }
   }
 
