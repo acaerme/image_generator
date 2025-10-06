@@ -1,52 +1,47 @@
-<!--
-Guidance for AI coding agents working on this repository.
-Keep this short, concrete and tied to discoverable patterns in the codebase.
--->
-
+<!-- Short, actionable guidance for AI coding agents working on this repository. -->
 # Copilot instructions — image_generator
 
 Quick context
-- Small, single-app Flutter project. UI and logic live under `lib/`. Entry point: `lib/main.dart` (MaterialApp -> `PromptScreen`).
-- SDK and deps in `pubspec.yaml` (Dart/Flutter constraint). Lint rules in `analysis_options.yaml`.
+- Single-module Flutter app (entry: `lib/main.dart`). Core flow: prompt -> generate -> show result.
+- Uses Navigator 2.0 (RouterDelegate + RouteInformationParser) and `flutter_bloc` for state & navigation signaling.
 
-Big-picture architecture
-- One-module mobile-first app. UI screens and state are colocated in `lib/screens/` and small widgets under `lib/`.
-- Navigation and data passing follow simple route pushes between `lib/screens/prompt_screen.dart` and `lib/screens/result_screen.dart`.
-- No backend services in repo. If you must add network code, centralize it in `lib/services/` and add unit tests.
+Essential architecture (what to read first)
+- Navigation: `lib/navigation/app_router.dart` (Bloc-driven).
+  - Navigation is driven by `PromptBloc` state; `AppRouterDelegate` listens to the bloc stream and shows `ResultScreen` when state is `PromptResult`.
+  - `AppRouterDelegate` + `AppRouteParser` are created in `lib/main.dart` and must be disposed in `MyApp.dispose()`.
+- UI: screens live under `lib/screens/`. `PromptScreen` is the pattern for responsive layout (uses `MediaQuery` + `ConstrainedBox`) and controller lifecycle.
+- State & async: `lib/bloc/prompt_bloc.dart` contains the existing bloc pattern — prefer extending/using it for async prompt/image generation.
 
-Developer workflows (essential commands)
-- Install deps: `flutter pub get` (run at repo root).
-- Run: `flutter run` or `flutter run -d <device id>` (e.g., `-d chrome` for web). Use `r` for hot reload and hot restart when needed.
-- Build: `flutter build apk` | `flutter build ios` | `flutter build web` | `flutter build macos`.
-- QA: `flutter analyze` (linting) and `flutter test` (unit/widget tests). Fix lints before opening a PR.
+Developer workflows (concrete commands)
+- Install dependencies: `flutter pub get` at repo root after updating `pubspec.yaml`.
+- Run app locally: `flutter run` or `flutter run -d <device id>` (e.g. `-d chrome`). Use `r` for hot reload.
+- Static checks & tests: `flutter analyze` and `flutter test`. CI expects no analyzer errors.
+- Build for release: `flutter build <platform>` (e.g. `apk`, `web`, `macos`).
 
-Project-specific conventions and patterns
-- UI-first: screens use `MediaQuery` + `ConstrainedBox` to constrain width (see `lib/screens/prompt_screen.dart`).
-- Controller lifecycle: text and animation controllers are disposed in `dispose()` (copy this pattern for new screens to avoid leaks).
-- Keep widgets small and local. Add new features under `lib/features/` or `lib/widgets/` rather than reorganizing existing layout.
-- Minimal external dependencies. Add packages in `pubspec.yaml` and run `flutter pub get`; include only what's necessary.
+Project conventions & gotchas (repo-specific)
+- Responsive layout: cap content width with `ConstrainedBox` (see `PromptScreen`) — follow the same pattern for new screens.
+- Lifecycle discipline: always `dispose()` controllers and router/state objects to avoid leaks (examples: `_controller.dispose()` in `PromptScreen`, `routerDelegate.dispose()` and `promptBloc.close()` in `MyApp.dispose()`).
+- State access pattern: use `Bloc` (`context.read<PromptBloc>()` / `BlocBuilder`) for state and navigation decisions. The RouterDelegate listens to bloc state changes.
+- File organization: widgets → `lib/widgets/`, screens → `lib/screens/`, services → `lib/services/`, blocs → `lib/bloc/`.
 
-Integration points & cautions
-- Platform folders (`android/`, `ios/`, `macos/`, etc.) contain native configs. Avoid editing signing/provisioning files without maintainer approval.
-- Do NOT commit `local.properties`, credentials, or provisioning files. Use environment variables or platform secrets for keys.
-- If you add platform channels, update both Dart and native code and document channel names in your PR.
+Integration points & external dependencies
+- Check `pubspec.yaml` before adding packages. After adding, run `flutter pub get` and `flutter analyze`.
+- Do not commit `local.properties` or platform signing files. Native folders (`android/`, `ios/`, `macos/`) contain sensitive config.
 
-Files to inspect when changing code
-- `lib/main.dart` — app root, theme (ColorScheme.fromSeed), and initial routing; good place to wire app-wide providers.
-- `lib/screens/prompt_screen.dart` — form input example (TextEditingController usage, dispose pattern, responsive layout).
-- `lib/screens/result_screen.dart` — result display and navigation example.
-- `pubspec.yaml` — dependencies, assets, and SDK constraints.
-- `analysis_options.yaml` — lint rules to follow.
+Editing navigation or routing
+- Any route/state change must keep the `PromptBloc` and `app_router.dart` in sync. RouterDelegate reflects `PromptBloc` state (push/pop based on `PromptResult` and `PopResult`).
+- Preserve listeners and `dispose()` calls when changing lifetime or wiring to avoid memory leaks.
 
-PR checklist for AI agents
-- Run `flutter analyze` and resolve lints.
-- Run `flutter test` and include results in the PR description.
-- Keep PRs small and focused: one screen/feature or one bugfix.
-- Document platform/native changes and any manual steps (e.g., Xcode signing) in the PR body.
+Files to check when modifying behavior
+- `lib/main.dart` — app bootstrap and Router wiring
+- `lib/navigation/app_router.dart` — page stack logic
+- `lib/screens/prompt_screen.dart` and `lib/screens/result_screen.dart` — UI flow examples
+- `lib/bloc/prompt_bloc.dart` — async prompt handling
+- `pubspec.yaml`, `analysis_options.yaml` — dependencies and lint rules
 
-Examples (copy patterns)
-- Add a screen: create `lib/screens/new_screen.dart`, follow `PromptScreen` pattern (stateful widget, controller dispose, responsive constraints).
-- Add a service: create `lib/services/my_service.dart`, export from a single file if multiple services added.
+PR & QA checklist for agents
+- Run `flutter analyze` and fix any new analyzer errors.
+- Run `flutter test` and include results in PR description.
+- Keep changes small and focused (one screen/feature/bugfix per PR).
 
-Feedback
-If anything here is unclear or you want examples (PR template, commit message format, or code style rules), tell me which area to expand.
+If anything in these instructions is unclear or you want more examples (tests, PR template, reviewer checklist), tell me what to add.

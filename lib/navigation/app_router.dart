@@ -1,5 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'app_state.dart';
+import '../bloc/prompt_bloc.dart';
 import '../screens/prompt_screen.dart';
 import '../screens/result_screen.dart';
 
@@ -12,7 +13,7 @@ class AppRoutePath {
 class AppRouteParser extends RouteInformationParser<AppRoutePath> {
   @override
   Future<AppRoutePath> parseRouteInformation(RouteInformation routeInformation) async {
-    final uri = Uri.parse(routeInformation.location ?? '/');
+    final uri = routeInformation.uri;
     if (uri.pathSegments.contains('result')) {
       return AppRoutePath.result();
     }
@@ -22,29 +23,34 @@ class AppRouteParser extends RouteInformationParser<AppRoutePath> {
   @override
   RouteInformation? restoreRouteInformation(AppRoutePath configuration) {
     if (configuration.isResult) {
-      return const RouteInformation(location: '/result');
+      return RouteInformation(uri: Uri(path: '/result'));
     }
-    return const RouteInformation(location: '/');
+    return RouteInformation(uri: Uri(path: '/'));
   }
 }
 
 class AppRouterDelegate extends RouterDelegate<AppRoutePath>
     with ChangeNotifier, PopNavigatorRouterDelegateMixin<AppRoutePath> {
+  @override
   final GlobalKey<NavigatorState> navigatorKey;
-  final AppState appState;
+  final PromptBloc promptBloc;
+  late final StreamSubscription promptSub;
 
-  AppRouterDelegate(this.appState) : navigatorKey = GlobalKey<NavigatorState>() {
-    appState.addListener(notifyListeners);
+  AppRouterDelegate(this.promptBloc) : navigatorKey = GlobalKey<NavigatorState>() {
+    // Listen to PromptBloc for navigation state changes
+    promptSub = promptBloc.stream.listen((state) => notifyListeners());
   }
 
   @override
   void dispose() {
-    appState.removeListener(notifyListeners);
+    promptSub.cancel();
     super.dispose();
   }
 
+  bool get _showResult => promptBloc.state is PromptResult;
+
   @override
-  AppRoutePath get currentConfiguration => appState.showResult ? AppRoutePath.result() : AppRoutePath.home();
+  AppRoutePath get currentConfiguration => _showResult ? AppRoutePath.result() : AppRoutePath.home();
 
   @override
   Widget build(BuildContext context) {
@@ -52,11 +58,12 @@ class AppRouterDelegate extends RouterDelegate<AppRoutePath>
       key: navigatorKey,
       pages: [
         const MaterialPage(child: PromptScreen()),
-        if (appState.showResult) MaterialPage(child: ResultScreen()),
+        if (_showResult) MaterialPage(child: ResultScreen()),
       ],
       onPopPage: (route, result) {
         if (!route.didPop(result)) return false;
-        appState.pop();
+        // Notify Bloc; Router listens to Bloc state
+        promptBloc.add(PopResult());
         return true;
       },
     );
@@ -64,10 +71,10 @@ class AppRouterDelegate extends RouterDelegate<AppRoutePath>
 
   @override
   Future<void> setNewRoutePath(AppRoutePath configuration) async {
-    if (configuration.isResult) {
-      appState.showResult = true;
-    } else {
-      appState.showResult = false;
+    // Route information is handled via the bloc state. If deep-linking is
+    // required, extend PromptBloc to accept an external 'show result' event.
+    if (!configuration.isResult) {
+      promptBloc.add(PopResult());
     }
   }
 }

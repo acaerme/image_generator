@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../navigation/app_state.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../bloc/prompt_bloc.dart';
 
 class PromptScreen extends StatefulWidget {
   const PromptScreen({super.key});
@@ -114,24 +115,27 @@ class _PromptScreenState extends State<PromptScreen> {
 
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton.icon(
-                            icon: const Icon(Icons.auto_fix_high),
-                          label: const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 12.0),
-                            child: Text('Generate', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            elevation: 2,
-                          ),
-                          onPressed: hasText
-                              ? () {
-                                  // Use the shared AppState to show the result screen via RouterDelegate
-                                  final appState = AppStateScope.of(context);
-                                  appState.generate(_controller.text.trim());
-                                }
-                              : null,
-                        ),
+                        child: BlocBuilder<PromptBloc, PromptState>(builder: (context, state) {
+                          final isLoading = state is PromptLoading;
+                          return ElevatedButton.icon(
+                            icon: isLoading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.auto_fix_high),
+                            label: const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 12.0),
+                              child: Text('Generate', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              elevation: 2,
+                            ),
+                            onPressed: (hasText && !isLoading)
+                                ? () {
+                                    // Dispatch event to Bloc which the RouterDelegate listens to
+                                    final bloc = context.read<PromptBloc>();
+                                    bloc.add(GeneratePrompt(_controller.text.trim()));
+                                  }
+                                : null,
+                          );
+                        }),
                       ),
 
                       const SizedBox(height: 8),
