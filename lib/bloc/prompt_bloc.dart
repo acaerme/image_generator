@@ -2,7 +2,6 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../services/mock_api.dart';
 
-// Events
 abstract class PromptEvent extends Equatable {
   const PromptEvent();
   @override
@@ -18,7 +17,6 @@ class GeneratePrompt extends PromptEvent {
 
 class PopResult extends PromptEvent {}
 
-// States
 abstract class PromptState extends Equatable {
   const PromptState();
   @override
@@ -48,7 +46,6 @@ class PromptError extends PromptState {
   List<Object?> get props => [message, prompt];
 }
 
-// Bloc
 class PromptBloc extends Bloc<PromptEvent, PromptState> {
   PromptBloc() : super(PromptInitial()) {
     on<GeneratePrompt>(_onGenerate);
@@ -56,15 +53,12 @@ class PromptBloc extends Bloc<PromptEvent, PromptState> {
   }
 
   void _onGenerate(GeneratePrompt event, Emitter<PromptState> emit) async {
-    // Start loading and call the Mock API to generate an image.
     emit(PromptLoading());
     try {
       final imagePath = await MockApi.generate(event.prompt);
       emit(PromptResult(event.prompt, imagePath));
     } catch (e) {
-      // Surface the error so the UI can present a retry affordance.
       final message = e?.toString() ?? 'Unknown error';
-      // Include the prompt that failed so the UI can retry with the same input
       emit(PromptError(message, event.prompt));
     }
   }

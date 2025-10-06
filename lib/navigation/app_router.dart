@@ -37,7 +37,6 @@ class AppRouterDelegate extends RouterDelegate<AppRoutePath>
   late final StreamSubscription promptSub;
 
   AppRouterDelegate(this.promptBloc) : navigatorKey = GlobalKey<NavigatorState>() {
-    // Listen to PromptBloc for navigation state changes
     promptSub = promptBloc.stream.listen((state) => notifyListeners());
   }
 
@@ -63,7 +62,6 @@ class AppRouterDelegate extends RouterDelegate<AppRoutePath>
       ],
       onPopPage: (route, result) {
         if (!route.didPop(result)) return false;
-        // Notify Bloc; Router listens to Bloc state
         promptBloc.add(PopResult());
         return true;
       },
@@ -72,8 +70,6 @@ class AppRouterDelegate extends RouterDelegate<AppRoutePath>
 
   @override
   Future<void> setNewRoutePath(AppRoutePath configuration) async {
-    // Route information is handled via the bloc state. If deep-linking is
-    // required, extend PromptBloc to accept an external 'show result' event.
     if (!configuration.isResult) {
       promptBloc.add(PopResult());
     }

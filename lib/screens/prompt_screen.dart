@@ -18,16 +18,25 @@ class _SuggestionChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.primary.withOpacity(0.08),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: theme.colorScheme.primary.withOpacity(0.12)),
+
+    // Use Material + InkWell so taps are visually apparent (ripple) and accessibility
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
+        splashColor: theme.colorScheme.primary.withOpacity(0.16),
+        highlightColor: theme.colorScheme.primary.withOpacity(0.06),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primary.withOpacity(0.06),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: theme.colorScheme.primary.withOpacity(0.12)),
+          ),
+          child: Text(label, style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600)),
         ),
-        child: Text(label, style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600)),
       ),
     );
   }
@@ -103,11 +112,9 @@ class _PromptScreenState extends State<PromptScreen> {
   }
 
   void _applyExample(String example) {
-    // Replace the current prompt with the example and focus the field
     _controller.text = example;
     _controller.selection = TextSelection.fromPosition(TextPosition(offset: example.length));
     setState(() {});
-    // give keyboard focus
     FocusScope.of(context).requestFocus(FocusNode());
   }
 
@@ -117,12 +124,10 @@ class _PromptScreenState extends State<PromptScreen> {
 
     final theme = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
-    // For mobile-first layout prefer a max width that fits phones comfortably
     final maxContentWidth = screenWidth < 480 ? screenWidth * 0.95 : 460.0;
 
     return Scaffold(
       backgroundColor: theme.colorScheme.background,
-      // Keep resizeToAvoidBottomInset true so the body moves up for the keyboard.
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Container(
@@ -154,7 +159,6 @@ class _PromptScreenState extends State<PromptScreen> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Gradient header strip
                       Container(
                         height: 84,
                         decoration: BoxDecoration(
@@ -186,7 +190,6 @@ class _PromptScreenState extends State<PromptScreen> {
                       ),
                       const SizedBox(height: 14),
 
-                      // Suggestion chips
                       Wrap(
                         spacing: 8,
                         runSpacing: 6,
@@ -199,7 +202,6 @@ class _PromptScreenState extends State<PromptScreen> {
                       ),
                       const SizedBox(height: 12),
 
-                      // Examples carousel (replace placeholder)
                       SizedBox(
                         height: 170,
                         child: PageView(
@@ -226,7 +228,6 @@ class _PromptScreenState extends State<PromptScreen> {
 
                       const SizedBox(height: 12),
 
-                      // Input area
                       ConstrainedBox(
                         constraints: BoxConstraints(maxWidth: maxContentWidth - 16),
                         child: TextField(
@@ -255,7 +256,6 @@ class _PromptScreenState extends State<PromptScreen> {
 
                       const SizedBox(height: 14),
 
-                      // Generate button
                       SizedBox(
                         width: double.infinity,
                         child: BlocBuilder<PromptBloc, PromptState>(builder: (context, state) {
