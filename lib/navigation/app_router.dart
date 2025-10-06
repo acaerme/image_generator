@@ -4,6 +4,10 @@ import '../bloc/prompt_bloc.dart';
 import '../screens/prompt_screen.dart';
 import '../screens/result_screen.dart';
 
+// RouterDelegate maps `PromptBloc` state to a Navigator page stack.
+// - Keep navigation logic here; do NOT call Navigator.push/pop from screens.
+// - `promptSub` listens to bloc state stream and calls `notifyListeners()` to rebuild the Navigator.
+
 class AppRoutePath {
   final bool isResult;
   AppRoutePath.home() : isResult = false;

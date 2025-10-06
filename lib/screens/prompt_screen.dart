@@ -93,7 +93,9 @@ class _ExampleCard extends StatelessWidget {
   }
 }
 
-
+// Prompt screen: UI for entering a text prompt, picking example prompts, and applying quick suggestion chips.
+// - Small sub-widgets (`_SuggestionChip`, `_ExampleCard`) are used to keep the layout modular.
+// - `_applySuggestion` appends the suggestion to the TextField; `_applyExample` replaces the text with a full example.
 class _PromptScreenState extends State<PromptScreen> {
   final TextEditingController _controller = TextEditingController();
 

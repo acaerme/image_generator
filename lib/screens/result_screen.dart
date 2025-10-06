@@ -2,8 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/prompt_bloc.dart';
 
+/// Result screen: shows loading, error, or generated image based on `PromptBloc` state.
+/// - UI is composed of header, image/error area, and actions.
+/// - `_promptFromState` centralizes logic to pick a retry prompt from current bloc state.
 class ResultScreen extends StatelessWidget {
   const ResultScreen({super.key});
+
+  String _promptFromState(PromptState state) {
+    String defaultPrompt = 'A cozy cabin in snowy mountains, warm lighting, 16:9';
+    if (state is PromptError && state.prompt.isNotEmpty) return state.prompt;
+    if (state is PromptResult) return state.prompt;
+    return defaultPrompt;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,16 +130,8 @@ class ResultScreen extends StatelessWidget {
                                   Row(mainAxisSize: MainAxisSize.min, children: [
                                     ElevatedButton(
                                         onPressed: () {
-                                          // Retry using the prompt that produced the error if available,
-                                          // otherwise fall back to the last successful prompt or a sensible default.
-                                          String retryPrompt = 'A cozy cabin in snowy mountains, warm lighting, 16:9';
                                           final current = context.read<PromptBloc>().state;
-                                          if (current is PromptError && current.prompt.isNotEmpty) {
-                                            retryPrompt = current.prompt;
-                                          } else if (current is PromptResult) {
-                                            retryPrompt = current.prompt;
-                                          }
-                                          context.read<PromptBloc>().add(GeneratePrompt(retryPrompt));
+                                          context.read<PromptBloc>().add(GeneratePrompt(_promptFromState(current)));
                                         },
                                       child: const Padding(padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0), child: Text('Retry')),
                                     ),
@@ -229,9 +231,7 @@ class ResultScreen extends StatelessWidget {
                         constraints: BoxConstraints(maxWidth: maxContentWidth - 24),
                         child: BlocBuilder<PromptBloc, PromptState>(builder: (context, state) {
                           final isLoading = state is PromptLoading;
-                          String currentPrompt = 'A cozy cabin in snowy mountains, warm lighting, 16:9';
-                          if (state is PromptResult) currentPrompt = state.prompt;
-                          if (state is PromptError && state.prompt.isNotEmpty) currentPrompt = state.prompt;
+                          final currentPrompt = _promptFromState(state);
 
                           if (state is PromptError) {
                             return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -254,24 +254,6 @@ class ResultScreen extends StatelessWidget {
                                       label: const Padding(padding: EdgeInsets.symmetric(vertical: 12.0), child: Text('New prompt', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700))),
                                       style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 2),
                                     ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  ElevatedButton.icon(
-                                    onPressed: () {
-                                      showDialog(
-                                        context: context,
-                                        builder: (ctx) => AlertDialog(
-                                          title: const Text('Share'),
-                                          content: const Text('Image has been shared successfully.'),
-                                          actions: [
-                                            TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('OK')),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                    icon: const Icon(Icons.share),
-                                    label: const Text('Share'),
-                                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                                   ),
                                 ],
                               )

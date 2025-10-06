@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:math';
 
+/// MockApi: lightweight, local service that simulates image generation.
+/// - Contract: `generate(String prompt) -> Future<String>` returning a local asset path (e.g. `assets/images/example_1.jpg`).
+/// - Behavior: simulates delay and occasional failure for development/testing; keep this shape when replacing with a real API.
 class MockApi {
   static Future<String> generate(String prompt) async {
     final delayMs = 2000 + Random().nextInt(1001);

@@ -2,6 +2,11 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../services/mock_api.dart';
 
+/// PromptBloc: controls prompt generation flow and navigation state.
+/// - Events: `GeneratePrompt` (user requested generation), `PopResult` (go back to prompt).
+/// - States: `PromptInitial`, `PromptLoading`, `PromptResult`, `PromptError`.
+/// - This bloc expects a service that returns `Future<String>` (image path). The repo's `MockApi.generate` satisfies this contract.
+
 abstract class PromptEvent extends Equatable {
   const PromptEvent();
   @override
