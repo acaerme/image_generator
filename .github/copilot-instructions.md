@@ -6,55 +6,47 @@ Keep this short, concrete and tied to discoverable patterns in the codebase.
 # Copilot instructions — image_generator
 
 Quick context
-- This is a small Flutter app scaffold (single-app project). Key entry points and files:
-  - `lib/main.dart` — app entry and UI root (MaterialApp). Use this to find UI/state logic.
-  - `pubspec.yaml` — project metadata, SDK requirement (Dart ^3.9.2) and dependencies.
-  - `analysis_options.yaml` — lints and static-analysis rules used by the repo.
-  - `test/widget_test.dart` — example test harness.
-  - Platform folders: `android/`, `ios/`, `macos/`, `web/`, `windows/`, `linux/` — native build/config.
-
-<!-- Copilot instructions for image_generator (concise, actionable) -->
-
-# Copilot instructions — image_generator
-
-Quick context
-- Single Flutter app (UI + logic under `lib/`). Entry point: `lib/main.dart` (MaterialApp -> `PromptScreen`).
-- SDK in `pubspec.yaml` (Dart/Flutter constraint) and lint rules in `analysis_options.yaml`.
+- Small, single-app Flutter project. UI and logic live under `lib/`. Entry point: `lib/main.dart` (MaterialApp -> `PromptScreen`).
+- SDK and deps in `pubspec.yaml` (Dart/Flutter constraint). Lint rules in `analysis_options.yaml`.
 
 Big-picture architecture
-- One module app: UI and state live in `lib/`. Small screens (e.g. `lib/screens/prompt_screen.dart`) handle input and show simple UI cards.
-- Platform-specific build configs live under `android/`, `ios/`, `macos/`, `web/`, `windows/`, `linux/`. Avoid editing signing/provisioning files without CI/maintainer coordination.
+- One-module mobile-first app. UI screens and state are colocated in `lib/screens/` and small widgets under `lib/`.
+- Navigation and data passing follow simple route pushes between `lib/screens/prompt_screen.dart` and `lib/screens/result_screen.dart`.
+- No backend services in repo. If you must add network code, centralize it in `lib/services/` and add unit tests.
 
-Concrete dev workflows (do these locally)
+Developer workflows (essential commands)
 - Install deps: `flutter pub get` (run at repo root).
-- Run locally: `flutter run` or `flutter run -d <device id>` (use `-d macos`/`-d ios` on macOS as needed).
+- Run: `flutter run` or `flutter run -d <device id>` (e.g., `-d chrome` for web). Use `r` for hot reload and hot restart when needed.
 - Build: `flutter build apk` | `flutter build ios` | `flutter build web` | `flutter build macos`.
-- Tests & static analysis: `flutter test` and `flutter analyze` (follow `analysis_options.yaml`).
-- Quick iteration: use hot reload (`r` in terminal or save in IDE) for UI changes; hot restart to reset state.
+- QA: `flutter analyze` (linting) and `flutter test` (unit/widget tests). Fix lints before opening a PR.
 
-Project-specific patterns and examples
-- UI-first, mobile-first layout: screens use `MediaQuery` and `ConstrainedBox` to cap widths (see `lib/screens/prompt_screen.dart`).
-- Keep widgets small and local. New features should add folders under `lib/` (e.g. `lib/features/` or `lib/widgets/`).
-- Minimal third-party dependencies; add packages in `pubspec.yaml` and run `flutter pub get`.
+Project-specific conventions and patterns
+- UI-first: screens use `MediaQuery` + `ConstrainedBox` to constrain width (see `lib/screens/prompt_screen.dart`).
+- Controller lifecycle: text and animation controllers are disposed in `dispose()` (copy this pattern for new screens to avoid leaks).
+- Keep widgets small and local. Add new features under `lib/features/` or `lib/widgets/` rather than reorganizing existing layout.
+- Minimal external dependencies. Add packages in `pubspec.yaml` and run `flutter pub get`; include only what's necessary.
 
 Integration points & cautions
-- No backend or network code in repo; if you add network clients, centralize them under `lib/services/` and add tests.
-- If adding platform channels, update both Dart and native (Android/iOS) sides and document channel names.
-- Do NOT commit credentials, provisioning profiles, or `local.properties` contents.
+- Platform folders (`android/`, `ios/`, `macos/`, etc.) contain native configs. Avoid editing signing/provisioning files without maintainer approval.
+- Do NOT commit `local.properties`, credentials, or provisioning files. Use environment variables or platform secrets for keys.
+- If you add platform channels, update both Dart and native code and document channel names in your PR.
 
-Files to reference when making changes
-- `lib/main.dart` — app root and theme (ColorScheme.fromSeed). Good place to wire global providers.
-- `lib/screens/prompt_screen.dart` — example screen: TextField, controller lifecycle (`dispose()`), responsive layout.
-- `pubspec.yaml` — add dependencies and assets here.
-- `analysis_options.yaml` — follow lint rules; run `flutter analyze`.
+Files to inspect when changing code
+- `lib/main.dart` — app root, theme (ColorScheme.fromSeed), and initial routing; good place to wire app-wide providers.
+- `lib/screens/prompt_screen.dart` — form input example (TextEditingController usage, dispose pattern, responsive layout).
+- `lib/screens/result_screen.dart` — result display and navigation example.
+- `pubspec.yaml` — dependencies, assets, and SDK constraints.
+- `analysis_options.yaml` — lint rules to follow.
 
-How to behave as an AI code agent (practical rules)
-1. Make minimal, focused changes. Prefer adding new files under `lib/` rather than reorganizing without maintainer approval.
-2. After edits: run `flutter analyze` and `flutter test` locally and include the results in your PR description.
-3. When touching native project files, call out required manual steps (signing, Xcode versions, Gradle) in the PR.
-4. Never add secrets or provisioning files. Suggest env-vars or secure stores instead.
+PR checklist for AI agents
+- Run `flutter analyze` and resolve lints.
+- Run `flutter test` and include results in the PR description.
+- Keep PRs small and focused: one screen/feature or one bugfix.
+- Document platform/native changes and any manual steps (e.g., Xcode signing) in the PR body.
 
-If unclear, ask the maintainer where to place features (preferred package layout, CI expectations, target platforms).
+Examples (copy patterns)
+- Add a screen: create `lib/screens/new_screen.dart`, follow `PromptScreen` pattern (stateful widget, controller dispose, responsive constraints).
+- Add a service: create `lib/services/my_service.dart`, export from a single file if multiple services added.
 
----
-If you'd like, I can also add short example PR templates or code snippets for common changes (small widget, new screen, add dependency).
+Feedback
+If anything here is unclear or you want examples (PR template, commit message format, or code style rules), tell me which area to expand.

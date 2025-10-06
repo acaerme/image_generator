@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../navigation/app_state.dart';
 
 class PromptScreen extends StatefulWidget {
   const PromptScreen({super.key});
@@ -114,7 +115,7 @@ class _PromptScreenState extends State<PromptScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
-                          icon: const Icon(Icons.auto_fix_high),
+                            icon: const Icon(Icons.auto_fix_high),
                           label: const Padding(
                             padding: EdgeInsets.symmetric(vertical: 12.0),
                             child: Text('Generate', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
@@ -125,9 +126,9 @@ class _PromptScreenState extends State<PromptScreen> {
                           ),
                           onPressed: hasText
                               ? () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Generate tapped')),
-                                  );
+                                  // Use the shared AppState to show the result screen via RouterDelegate
+                                  final appState = AppStateScope.of(context);
+                                  appState.generate(_controller.text.trim());
                                 }
                               : null,
                         ),
