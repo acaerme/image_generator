@@ -3,8 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/prompt_bloc.dart';
 
 /// Result screen: shows loading, error, or generated image based on `PromptBloc` state.
-/// - UI is composed of header, image/error area, and actions.
-/// - `_promptFromState` centralizes logic to pick a retry prompt from current bloc state.
 class ResultScreen extends StatelessWidget {
   const ResultScreen({super.key});
 

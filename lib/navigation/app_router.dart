@@ -5,8 +5,6 @@ import '../screens/prompt_screen.dart';
 import '../screens/result_screen.dart';
 
 // RouterDelegate maps `PromptBloc` state to a Navigator page stack.
-// - Keep navigation logic here; do NOT call Navigator.push/pop from screens.
-// - `promptSub` listens to bloc state stream and calls `notifyListeners()` to rebuild the Navigator.
 
 class AppRoutePath {
   final bool isResult;
@@ -60,19 +58,29 @@ class AppRouterDelegate extends RouterDelegate<AppRoutePath>
   Widget build(BuildContext context) {
     return Navigator(
       key: navigatorKey,
+      onPopPage: (route, result) {
+        // Let the route perform its internal pop action first.
+        if (!route.didPop(result)) return false;
+
+        // Update app state via the bloc so RouterDelegate rebuilds the pages list.
+        promptBloc.add(PopResult());
+        return true;
+      },
       pages: [
         const MaterialPage(child: PromptScreen()),
         if (_showResult) MaterialPage(child: ResultScreen()),
       ],
-      // Use onPopPage for now (onDidRemovePage caused a type error on some SDKs).
-      // Suppress the deprecation lint so analysis is clean while behavior is unchanged.
-      // ignore: deprecated_member_use
-      onPopPage: (route, result) {
-        if (!route.didPop(result)) return false;
-        promptBloc.add(PopResult());
-        return true;
-      },
     );
+  }
+
+  @override
+  Future<bool> popRoute() async {
+    // Handle system/back navigation: if we're showing the result page, send a PopResult
+    if (_showResult) {
+      promptBloc.add(PopResult());
+      return true;
+    }
+    return false;
   }
 
   @override

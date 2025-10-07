@@ -2,11 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'navigation/app_router.dart';
 import 'bloc/prompt_bloc.dart';
-
-// App bootstrap and ownership
-// - `MyApp` creates and owns the lifecycle of `PromptBloc` and `AppRouterDelegate`.
-// - RouterDelegate listens to bloc state and maps it to Navigator pages (navigation-by-bloc).
-
 void main() {
   runApp(const MyApp());
 }

@@ -17,9 +17,9 @@ class _SuggestionChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+  final theme = Theme.of(context);
 
-    // Use Material + InkWell so taps are visually apparent (ripple) and accessibility
+  // Use Material + InkWell so taps are visually apparent (ripple) and accessibility
     return Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(20),
@@ -93,8 +93,6 @@ class _ExampleCard extends StatelessWidget {
 }
 
 // Prompt screen: UI for entering a text prompt, picking example prompts, and applying quick suggestion chips.
-// - Small sub-widgets (`_SuggestionChip`, `_ExampleCard`) are used to keep the layout modular.
-// - `_applySuggestion` appends the suggestion to the TextField; `_applyExample` replaces the text with a full example.
 class _PromptScreenState extends State<PromptScreen> {
   final TextEditingController _controller = TextEditingController();
 
@@ -128,7 +126,6 @@ class _PromptScreenState extends State<PromptScreen> {
     final maxContentWidth = screenWidth < 480 ? screenWidth * 0.95 : 460.0;
 
     return Scaffold(
-      // `background` color is deprecated; use `surface` for the same visual role here.
       backgroundColor: theme.colorScheme.surface,
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
@@ -161,13 +158,14 @@ class _PromptScreenState extends State<PromptScreen> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      // Let the header size itself to its contents so it won't overflow
+                      // when system font scaling / accessibility settings are large.
                       Container(
-                        height: 84,
                         decoration: BoxDecoration(
                           gradient: LinearGradient(colors: [theme.colorScheme.primary, theme.colorScheme.primaryContainer.withAlpha(230)], begin: Alignment.topLeft, end: Alignment.bottomRight),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [

@@ -63,7 +63,6 @@ class PromptBloc extends Bloc<PromptEvent, PromptState> {
       final imagePath = await MockApi.generate(event.prompt);
       emit(PromptResult(event.prompt, imagePath));
     } catch (e) {
-      // `e` is non-null in a catch clause; avoid null-aware operator.
       final message = e.toString();
       emit(PromptError(message, event.prompt));
     }
