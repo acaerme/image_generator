@@ -216,7 +216,6 @@ class ResultScreen extends StatelessWidget {
 
                           return Container(
                             height: 180,
-                            // use `surface` instead of deprecated `background`
                             decoration: BoxDecoration(color: theme.colorScheme.surface, borderRadius: BorderRadius.circular(10)),
                             child: Center(child: Icon(Icons.image, size: 48, color: theme.colorScheme.onSurface.withAlpha(77))),
                           );
