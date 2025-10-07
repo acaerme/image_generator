@@ -59,7 +59,6 @@ class AppRouterDelegate extends RouterDelegate<AppRoutePath>
     return Navigator(
       key: navigatorKey,
       onPopPage: (route, result) {
-        // Let the route perform its internal pop action first.
         if (!route.didPop(result)) return false;
 
         // Update app state via the bloc so RouterDelegate rebuilds the pages list.
